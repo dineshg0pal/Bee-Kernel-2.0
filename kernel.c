@@ -1,20 +1,20 @@
 // kernel.c
+
 #include "vga.h"
+#include "idt.h"
 
 void kernel_main() {
     clear_screen();
 
-    set_color(15, 0); // White on black
+    set_color(15, 0);
     print("Hello from Bee Kernel!\n");
-    print("Welcome to the VGA console.\n\n");
+    print("Initializing IDT...\n");
 
-    int line = 0;
+    idt_init();
+
+    print("IDT Loaded Successfully.\n\n");
 
     while (1) {
-        print("Line ");
-        char c = '0' + (line % 10);
-        put_char(c);
-        print("\n");
-        line++;
+        // idle
     }
 }
