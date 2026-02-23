@@ -1,12 +1,20 @@
-// kernel.c - Minimal C kernel for GRUB
+// kernel.c
+#include "vga.h"
+
 void kernel_main() {
-    char *video = (char *)0xB8000;
-    const char *msg = "Hello from Bee Kernel!";
-    int i = 0;
-    while (msg[i]) {
-        video[i*2] = msg[i];      // character
-        video[i*2+1] = 0x0F;      // color (white on black)
-        i++;
+    clear_screen();
+
+    set_color(15, 0); // White on black
+    print("Hello from Bee Kernel!\n");
+    print("Welcome to the VGA console.\n\n");
+
+    int line = 0;
+
+    while (1) {
+        print("Line ");
+        char c = '0' + (line % 10);
+        put_char(c);
+        print("\n");
+        line++;
     }
-    while (1) {}                  // halt
 }
