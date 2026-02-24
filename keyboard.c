@@ -1,6 +1,7 @@
 // keyboard.c
 
 #include <stdint.h>
+#include "vga.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC_EOI      0x20
@@ -48,7 +49,6 @@ static uint32_t tail = 0;
 static void buffer_push(char c)
 {
     uint32_t next = (head + 1) % INPUT_BUFFER_SIZE;
-
     if (next != tail) {
         input_buffer[head] = c;
         head = next;
