@@ -2,10 +2,27 @@ ENTRY(kernel_main)
 
 SECTIONS
 {
-    . = 0x100000;   /* load address for GRUB */
+    . = 1M;
 
-    .multiboot : { *(.multiboot) }  /* GRUB header first */
-    .text : { *(.text) }
-    .data : { *(.data) }
-    .bss  : { *(.bss) *(COMMON) }
+    .text :
+    {
+        *(.multiboot)
+        *(.text*)
+    }
+
+    .rodata :
+    {
+        *(.rodata*)
+    }
+
+    .data :
+    {
+        *(.data*)
+    }
+
+    .bss :
+    {
+        *(.bss*)
+        *(COMMON)
+    }
 }

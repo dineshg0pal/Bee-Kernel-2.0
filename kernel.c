@@ -1,10 +1,8 @@
 #include "vga.h"
 #include "idt.h"
+#include "keyboard.h"
 
-extern char keyboard_getchar();
-
-void kernel_main()
-{
+void kernel_main() {
     clear_screen();
     set_color(15, 0);
 
@@ -12,33 +10,19 @@ void kernel_main()
     print("Initializing IDT...\n");
 
     idt_init();
+    keyboard_init();   // IMPORTANT
 
     print("IDT Loaded Successfully.\n\n");
-    print("Structured input active.\n\n");
+    print("Type something:\n\n");
+    print("new version\n"); 
+    while (1) {
+      char c = keyboard_getchar();
+      if (!c) continue;
 
-    char line_buffer[256];
-    uint32_t line_index = 0;
-
-    while (1)
-    {
-        char c = keyboard_getchar();
-
-        if (!c)
-            continue;
-
-        if (c == '\b') {
-            if (line_index > 0) {
-                line_index--;
-                vga_backspace();
-            }
-        } else if (c == '\n') {
-            put_char('\n');
-            line_index = 0;
-        } else {
-            put_char(c);
-            if (line_index < sizeof(line_buffer)-1) {
-                line_buffer[line_index++] = c;
-            }
-        }
+      if (c == '\b') {
+        vga_backspace();
+      } else {
+        put_char(c);
+      }
     }
 }

@@ -109,3 +109,19 @@ void vga_backspace() {
     vga_buffer[cursor_row * VGA_WIDTH + cursor_col] = (color << 8) | ' ';
     update_cursor();
 }
+
+
+void vga_move_cursor_left() {
+    if(cursor_col == 0 && cursor_row == 0) return;
+    if(cursor_col == 0) { cursor_row--; cursor_col = VGA_WIDTH-1; }
+    else cursor_col--;
+    update_cursor();
+}
+
+void vga_move_cursor_right() {
+    if(cursor_col >= VGA_WIDTH-1) {
+        cursor_col = 0; cursor_row++;
+        if(cursor_row >= VGA_HEIGHT) scroll(), cursor_row = VGA_HEIGHT-1;
+    } else cursor_col++;
+    update_cursor();
+}
