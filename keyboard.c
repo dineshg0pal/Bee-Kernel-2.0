@@ -1,12 +1,12 @@
 // keyboard.c
 
 #include <stdint.h>
-#include "vga.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC_EOI      0x20
-
 #define KEYBOARD_DATA_PORT 0x60
+
+#define INPUT_BUFFER_SIZE 256
 
 /* ---------------- I/O ---------------- */
 
@@ -23,7 +23,6 @@ static inline void outb(uint16_t port, uint8_t val)
 }
 
 /* ---------------- SCANCODE TABLE ---------------- */
-/* Set 1 keyboard scancodes */
 
 static const char scancode_table[128] = {
     0,  27, '1','2','3','4','5','6','7','8','9','0','-','=', '\b',
@@ -40,13 +39,38 @@ static const char scancode_table[128] = {
     ' ',
 };
 
-/* ---------------- HANDLER ---------------- */
+/* ---------------- RING BUFFER ---------------- */
+
+static char input_buffer[INPUT_BUFFER_SIZE];
+static uint32_t head = 0;
+static uint32_t tail = 0;
+
+static void buffer_push(char c)
+{
+    uint32_t next = (head + 1) % INPUT_BUFFER_SIZE;
+
+    if (next != tail) {
+        input_buffer[head] = c;
+        head = next;
+    }
+}
+
+char keyboard_getchar()
+{
+    if (head == tail)
+        return 0;
+
+    char c = input_buffer[tail];
+    tail = (tail + 1) % INPUT_BUFFER_SIZE;
+    return c;
+}
+
+/* ---------------- IRQ HANDLER ---------------- */
 
 void irq1_handler()
 {
     uint8_t scancode = inb(KEYBOARD_DATA_PORT);
 
-    /* Ignore key release (break codes) */
     if (scancode & 0x80) {
         outb(PIC1_COMMAND, PIC_EOI);
         return;
@@ -54,10 +78,8 @@ void irq1_handler()
 
     char c = scancode_table[scancode];
 
-    if (c) {
-        put_char(c);
-    }
+    if (c)
+        buffer_push(c);
 
-    /* Send End Of Interrupt */
     outb(PIC1_COMMAND, PIC_EOI);
 }
