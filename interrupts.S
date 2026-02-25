@@ -6,12 +6,40 @@ idt_load:
     lidt [eax]
     ret
 
+; ================= IRQ0 =================
+global irq0_stub
+extern irq0_handler
+
+irq0_stub:
+    cli
+    push ds
+    push es
+    push fs
+    push gs
+    pusha
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    call irq0_handler
+
+    popa
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    iretd
+
+
+; ================= IRQ1 =================
 global irq1_stub
 extern irq1_handler
 
 irq1_stub:
     cli
-
     push ds
     push es
     push fs
@@ -31,5 +59,4 @@ irq1_stub:
     pop fs
     pop es
     pop ds
-
     iretd

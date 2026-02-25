@@ -2,6 +2,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "shell.h"
+#include "pit.h"
 
 void kernel_main() {
     clear_screen();
@@ -12,6 +13,7 @@ void kernel_main() {
 
     idt_init();
     keyboard_init();
+    pit_init(100);   // 1000 Hz = 1ms per tick
 
     print("IDT Loaded Successfully.\n\n");
 

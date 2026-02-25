@@ -32,6 +32,8 @@ struct idt_ptr {
 extern void idt_load(uint32_t);
 extern void irq1_stub();
 
+extern void irq0_stub();
+
 struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr   idtp;
 
@@ -97,7 +99,7 @@ void pic_remap()
     io_wait();
 
     // Unmask only IRQ1
-    outb(PIC1_DATA, 0xFD);
+    outb(PIC1_DATA, 0xFC);
     outb(PIC2_DATA, 0xFF);
 }
 
@@ -115,6 +117,7 @@ void idt_init()
 
     uint16_t cs = get_cs();
 
+    idt_set_gate(32, (uint32_t)irq0_stub, cs, 0x8E);
     idt_set_gate(33, (uint32_t)irq1_stub, cs, 0x8E);
 
     idt_load((uint32_t)&idtp);
