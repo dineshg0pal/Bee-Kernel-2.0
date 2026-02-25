@@ -18,7 +18,7 @@ irq1_stub:
     push gs
     pusha
 
-    mov ax, 0x10      ; your kernel data segment selector
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -32,5 +32,4 @@ irq1_stub:
     pop es
     pop ds
 
-    sti
-    iret
+    iretd

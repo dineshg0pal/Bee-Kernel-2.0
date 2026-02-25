@@ -1,6 +1,7 @@
 #include "vga.h"
 #include "idt.h"
 #include "keyboard.h"
+#include "shell.h"
 
 void kernel_main() {
     clear_screen();
@@ -10,19 +11,16 @@ void kernel_main() {
     print("Initializing IDT...\n");
 
     idt_init();
-    keyboard_init();   // IMPORTANT
+    keyboard_init();
 
     print("IDT Loaded Successfully.\n\n");
-    print("Type something:\n\n");
-    print("new version\n"); 
-    while (1) {
-      char c = keyboard_getchar();
-      if (!c) continue;
 
-      if (c == '\b') {
-        vga_backspace();
-      } else {
-        put_char(c);
-      }
+    shell_init();   // <-- start the shell
+
+    while (1) {
+        char c = keyboard_getchar();
+        if (!c) continue;
+
+        shell_input(c);   // <-- route input to shell
     }
 }
