@@ -4,7 +4,10 @@
 #include <stdint.h>
 
 /* initialize IDT + PIC */
+
 void idt_init();
+
+void idt_load_now(void);
 
 /* allow external modules (ISR installer) */
 void idt_set_gate(

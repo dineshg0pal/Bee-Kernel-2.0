@@ -115,7 +115,7 @@ char keyboard_getchar() {
 
 /* ---------------- IRQ HANDLER ---------------- */
 
-void irq1_handler() {
+void keyboard_callback(void) {
 
     uint8_t scancode = inb(KEYBOARD_DATA_PORT);
 
@@ -125,13 +125,13 @@ void irq1_handler() {
     /* SHIFT press/release */
     if (code == 0x2A || code == 0x36) {
         shift = !released;
-        outb(PIC1_COMMAND, PIC_EOI);
+  
         return;
     }
 
     /* Ignore key releases */
     if (released) {
-        outb(PIC1_COMMAND, PIC_EOI);
+    
         return;
     }
 
@@ -140,5 +140,5 @@ void irq1_handler() {
     if (c)
         buffer_push(c);
 
-    outb(PIC1_COMMAND, PIC_EOI);
+ 
 }

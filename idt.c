@@ -1,5 +1,3 @@
-// idt.c
-
 #include "idt.h"
 #include <stdint.h>
 
@@ -30,9 +28,6 @@ struct idt_ptr {
 } __attribute__((packed));
 
 extern void idt_load(uint32_t);
-extern void irq1_stub();
-
-extern void irq0_stub();
 
 struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr   idtp;
@@ -49,15 +44,6 @@ static inline void io_wait()
     __asm__ volatile ("outb %%al, $0x80" : : "a"(0));
 }
 
-/* ---------------- GET CURRENT CS ---------------- */
-
-static uint16_t get_cs()
-{
-    uint16_t cs;
-    __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
-    return cs;
-}
-
 /* ---------------- IDT ---------------- */
 
 void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
@@ -71,13 +57,8 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 
 /* ---------------- PIC REMAP ---------------- */
 
-void pic_remap()
+static void pic_remap()
 {
-    uint8_t a1, a2;
-
-    a1 = 0xFF;
-    a2 = 0xFF;
-
     outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
@@ -98,7 +79,7 @@ void pic_remap()
     outb(PIC2_DATA, ICW4_8086);
     io_wait();
 
-    // Unmask only IRQ1
+    /* Unmask IRQ0 and IRQ1 only */
     outb(PIC1_DATA, 0xFC);
     outb(PIC2_DATA, 0xFF);
 }
@@ -115,12 +96,10 @@ void idt_init()
 
     pic_remap();
 
-    uint16_t cs = get_cs();
+   
+}
 
-    idt_set_gate(32, (uint32_t)irq0_stub, cs, 0x8E);
-    idt_set_gate(33, (uint32_t)irq1_stub, cs, 0x8E);
-
+void idt_load_now()
+{
     idt_load((uint32_t)&idtp);
-
-    __asm__ volatile ("sti");
 }

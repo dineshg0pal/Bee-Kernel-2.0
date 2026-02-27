@@ -12,4 +12,6 @@ char keyboard_getchar();
 /* IRQ handler called from IDT */
 void irq1_handler();
 
+void keyboard_callback(void);
+
 #endif

@@ -1,8 +1,29 @@
 #include "isr.h"
 #include "panic.h"
-#include "idt.h"
+#include "keyboard.h"
+#include "pit.h"
 #include <stdint.h>
 
+/* PIC ports */
+#define PIC1_COMMAND 0x20
+#define PIC2_COMMAND 0xA0
+#define PIC_EOI      0x20
+
+static uint16_t get_cs()
+{
+    uint16_t cs;
+    __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
+    return cs;
+}
+
+
+/* low-level port output */
+static inline void outb(uint16_t port, uint8_t value)
+{
+    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
+}
+
+/* External assembly ISR/IRQ symbols */
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -36,59 +57,78 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
-static const char* exception_messages[] = {
-"Divide By Zero",
-"Debug",
-"Non Maskable Interrupt",
-"Breakpoint",
-"Overflow",
-"Bound Range Exceeded",
-"Invalid Opcode",
-"Device Not Available",
-"Double Fault",
-"Coprocessor Segment Overrun",
-"Invalid TSS",
-"Segment Not Present",
-"Stack Fault",
-"General Protection Fault",
-"Page Fault",
-"Reserved",
-"x87 Floating Point",
-"Alignment Check",
-"Machine Check",
-"SIMD Floating Point",
-"Virtualization",
-"Control Protection",
-"Reserved",
-"Reserved",
-"Reserved",
-"Reserved",
-"Reserved",
-"Reserved",
-"Hypervisor Injection",
-"VMM Communication",
-"Security Exception",
-"Reserved"
-};
+extern void irq0();
+extern void irq1();
+extern void irq2();
+extern void irq3();
+extern void irq4();
+extern void irq5();
+extern void irq6();
+extern void irq7();
+extern void irq8();
+extern void irq9();
+extern void irq10();
+extern void irq11();
+extern void irq12();
+extern void irq13();
+extern void irq14();
+extern void irq15();
 
-void isr_handler(uint32_t* stack)
+/* IDT setter (already implemented in idt.c) */
+extern void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
+
+/* Install ISRs + IRQs into IDT */
+void isr_install(void)
 {
-    uint32_t int_no = stack[1];
-    kernel_panic(exception_messages[int_no]);
+    uint16_t cs = get_cs();
+
+    /* Exceptions 0–31 */
+    idt_set_gate(0,  (uint32_t)isr0,  cs, 0x8E);
+    idt_set_gate(1,  (uint32_t)isr1,  cs, 0x8E);
+    
+    idt_set_gate(31, (uint32_t)isr31, cs, 0x8E);
+
+    /* IRQs 32–47 */
+    idt_set_gate(32, (uint32_t)irq0,  cs, 0x8E);
+    idt_set_gate(33, (uint32_t)irq1,  cs, 0x8E);
+    
+    idt_set_gate(47, (uint32_t)irq15, cs, 0x8E);
+
+
 }
 
-void isr_install()
+/* Unified interrupt dispatcher */
+void interrupt_dispatch(interrupt_frame_t* frame)
 {
-    uint16_t cs;
-    __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
+    uint32_t int_no = frame->int_no;
 
-    void* isrs[] = {
-        isr0,isr1,isr2,isr3,isr4,isr5,isr6,isr7,
-        isr8,isr9,isr10,isr11,isr12,isr13,isr14,isr15,
-        isr16,isr17,isr18,isr19,isr20,isr21,isr22,isr23,
-        isr24,isr25,isr26,isr27,isr28,isr29,isr30,isr31
-    };
+    /* CPU Exceptions */
+    if (int_no < 32) {
+        kernel_panic("CPU Exception");
+        return;
+    }
 
-    for(int i=0;i<32;i++)
-        idt_set_gate(i,(uint32_t)isrs[i],cs,0x8E);
+    /* Hardware IRQs */
+    if (int_no >= 32 && int_no <= 47) {
+
+        switch (int_no) {
+            case 32:  // PIT
+                pit_callback();
+                break;
+
+            case 33:  // Keyboard
+                keyboard_callback();
+                break;
+
+            default:
+                break;
+        }
+
+        /* Send EOI */
+        if (int_no >= 40) {
+            outb(PIC2_COMMAND, PIC_EOI);
+        }
+
+        outb(PIC1_COMMAND, PIC_EOI);
+    }
 }

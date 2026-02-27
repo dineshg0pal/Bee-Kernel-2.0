@@ -20,10 +20,10 @@ static inline void outb(uint16_t port, uint8_t val)
 
 /* ---------------- IRQ HANDLER ---------------- */
 
-void irq0_handler()
+void pit_callback(void)
 {
     ticks++;
-    outb(PIC1_COMMAND, PIC_EOI);
+   
 }
 
 /* ---------------- INIT ---------------- */
