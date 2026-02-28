@@ -3,4 +3,9 @@
 *.elf
 *.bin
 *.iso
-*.Makefile
+
+# ISO folder
+iso/
+
+# QEMU logs
+*.log

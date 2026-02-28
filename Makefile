@@ -13,8 +13,8 @@ ASFLAGS = -f elf32
 LDFLAGS = -m elf_i386 -T linker.ld
 
 # Files
-C_SRC = kernel.c idt.c isr.c keyboard.c panic.c pit.c shell.c vga.c pmm.c
-ASM_SRC = boot.S idt_load.S interrupts.S exceptions.S multiboot_header.S
+C_SRC = kernel.c idt.c isr.c keyboard.c panic.c pit.c shell.c vga.c pmm.c paging.c
+ASM_SRC = boot.S idt_load.S interrupts.S exceptions.S multiboot_header.S paging_asm.S
 
 OBJ = $(C_SRC:.c=.o) $(ASM_SRC:.S=.o)
 

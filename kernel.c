@@ -8,9 +8,9 @@
 #include "multiboot.h"
 #include <stdint.h>
 #include "pmm.h"
+#include "paging.h"
 
-
-/* Global multiboot info pointer (read-only after init) */
+/* Global multiboot info pointer */
 multiboot_info_t* g_multiboot_info = 0;
 
 void kernel_main(uint32_t magic, uint32_t multiboot_addr)
@@ -23,18 +23,30 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     g_multiboot_info = (multiboot_info_t*)multiboot_addr;
 
-    pmm_init();
     /* ---------------- BASIC SCREEN ---------------- */
 
     clear_screen();
     set_color(15, 0);
     print("Hello from Bee Kernel!\n");
 
-    /* ---------------- IDT + ISR ---------------- */
+    /* ---------------- IDT + ISR FIRST ---------------- */
 
     idt_init();
     isr_install();
     idt_load_now();
+
+    /* ---------------- MEMORY SYSTEM ---------------- */
+
+    pmm_init();
+
+    /* Enable paging AFTER IDT is ready */
+    paging_init();
+
+    /* ---------------- TEST PAGE FAULT ---------------- */
+    
+  /*  int* x = 0;
+    *x = 5; */
+    
 
     /* ---------------- HARDWARE INIT ---------------- */
 
@@ -51,7 +63,7 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     /* ---------------- SHELL ---------------- */
 
     shell_init();
-    
+
     /* ---------------- MAIN LOOP ---------------- */
 
     while (1) {
