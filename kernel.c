@@ -10,7 +10,7 @@
 #include "pmm.h"
 #include "paging.h"
 
-/* Global multiboot info pointer */
+/* Global multiboot information pointer */
 multiboot_info_t* g_multiboot_info = 0;
 
 void kernel_main(uint32_t magic, uint32_t multiboot_addr)
