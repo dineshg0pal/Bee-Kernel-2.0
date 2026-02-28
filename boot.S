@@ -7,7 +7,7 @@ _start:
     cli
     mov esp, stack_top
 
-    push ebx        ; multiboot info addr
+    push ebx        ; multiboot info pointer
     push eax        ; multiboot magic
     call kernel_main
 

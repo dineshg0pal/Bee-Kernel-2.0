@@ -1,4 +1,4 @@
-ENTRY(kernel_main)
+ENTRY(_start)
 
 SECTIONS
 {
@@ -24,5 +24,6 @@ SECTIONS
     {
         *(.bss*)
         *(COMMON)
+        end = .;
     }
 }
