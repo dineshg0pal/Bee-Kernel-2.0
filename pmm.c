@@ -138,11 +138,49 @@ uint32_t pmm_alloc_frame(void)
     return 0; // out of memory
 }
 
+
+
 void pmm_free_frame(uint32_t addr)
 {
+    if (addr % FRAME_SIZE != 0)
+        return;
+
     uint32_t frame = addr / FRAME_SIZE;
+
+    if (frame >= total_frames)
+        return;
+
+    if (!test_frame(frame))
+        return;  // prevent double free
+
     clear_frame(frame);
     used_frames--;
+}
+
+
+uint32_t pmm_get_used_memory(void)
+{
+    return used_frames * FRAME_SIZE;
+}
+
+uint32_t pmm_get_free_memory(void)
+{
+    return (total_frames - used_frames) * FRAME_SIZE;
+}
+
+uint32_t pmm_get_reserved_memory(void)
+{
+    return total_memory - pmm_get_free_memory() - pmm_get_used_memory();
+}
+
+uint32_t pmm_get_total_frames(void)
+{
+    return total_frames;
+}
+
+uint32_t pmm_get_used_frames(void)
+{
+    return used_frames;
 }
 
 uint32_t pmm_get_total_memory(void)

@@ -11,4 +11,7 @@ void vga_backspace();
 void vga_move_cursor_left();
 void vga_move_cursor_right();
 
+void print_dec(uint32_t n);
+void print_hex(uint32_t n);
+
 #endif

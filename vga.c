@@ -125,3 +125,39 @@ void vga_move_cursor_right() {
     } else cursor_col++;
     update_cursor();
 }
+/* -------------------- PRINT DECIMAL -------------------- */
+void print_dec(uint32_t n) {
+    if (n == 0) {
+        put_char('0');
+        return;
+    }
+
+    char buffer[16];
+    int i = 0;
+
+    while (n > 0) {
+        buffer[i++] = '0' + (n % 10);
+        n /= 10;
+    }
+
+    while (i > 0) {
+        put_char(buffer[--i]);
+    }
+}
+
+/* -------------------- PRINT HEX -------------------- */
+void print_hex(uint32_t n) {
+    print("0x");
+
+    char hex_chars[] = "0123456789ABCDEF";
+    char buffer[8];
+
+    for (int i = 0; i < 8; i++) {
+        buffer[7 - i] = hex_chars[n & 0xF];
+        n >>= 4;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        put_char(buffer[i]);
+    }
+}
