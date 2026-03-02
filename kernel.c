@@ -10,6 +10,17 @@
 #include "pmm.h"
 #include "paging.h"
 
+#include "gdt.h"
+
+extern void switch_to_user_mode();
+
+/* Kernel stack (Ring 0) */
+uint8_t kernel_stack[4096];
+uint32_t kernel_stack_top = (uint32_t)&kernel_stack[4096];
+
+/* User stack (Ring 3) */
+uint8_t user_stack[4096];
+uint32_t user_stack_top = (uint32_t)&user_stack[4096];
 /* Global multiboot information pointer */
 multiboot_info_t* g_multiboot_info = 0;
 
@@ -40,7 +51,7 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     pmm_init();
 
     /* Enable paging AFTER IDT is ready */
-    paging_init();
+//    paging_init();
 
     /* ---------------- TEST PAGE FAULT ---------------- */
     
@@ -57,20 +68,18 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     /* ---------------- ENABLE INTERRUPTS ---------------- */
 
+
+    gdt_init();
+
+    tss_set_kernel_stack(kernel_stack_top);
+
     __asm__ volatile("sti");
-    print("Interrupts enabled.\n\n");
 
-    /* ---------------- SHELL ---------------- */
+    print("Switching to user mode...\n");
 
-    shell_init();
+    switch_to_user_mode();
 
-    /* ---------------- MAIN LOOP ---------------- */
 
-    while (1) {
-        char c = keyboard_getchar();
-        if (!c)
-            continue;
-
-        shell_input(c);
-    }
+    while (1)
+       __asm__ volatile("hlt");
 }
