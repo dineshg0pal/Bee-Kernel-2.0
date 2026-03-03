@@ -1,7 +1,6 @@
 #include "vga.h"
 #include "idt.h"
 #include "keyboard.h"
-#include "shell.h"
 #include "pit.h"
 #include "isr.h"
 #include "panic.h"

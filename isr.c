@@ -2,9 +2,12 @@
 #include "panic.h"
 #include "keyboard.h"
 #include "pit.h"
+#include "syscall.h"
+#include "pmm.h"
 #include <stdint.h>
 
 void print(const char* str);
+void print_dec(uint32_t n);
 
 /* PIC ports */
 #define PIC1_COMMAND 0x20
@@ -106,6 +109,65 @@ static void page_fault_handler(interrupt_frame_t* frame)
         __asm__ volatile("hlt");
 }
 
+
+/*handle syscall*/
+
+static void handle_syscall(interrupt_frame_t* frame)
+{
+    switch (frame->eax)
+    {
+        case SYS_PRINT:
+            print((char*)frame->ebx);
+            break;
+
+        case SYS_GETCHAR:
+            frame->eax = keyboard_getchar();
+            break;
+
+        case SYS_MEMINFO:
+        {
+            print("=== Memory Info ===\n");
+
+            print("Total Memory: ");
+            print_dec(pmm_get_total_memory());
+            print(" bytes\n");
+
+            print("Used Memory: ");
+            print_dec(pmm_get_used_memory());
+            print(" bytes\n");
+
+            print("Free Memory: ");
+            print_dec(pmm_get_free_memory());
+            print(" bytes\n");
+
+            print("Reserved Memory: ");
+            print_dec(pmm_get_reserved_memory());
+            print(" bytes\n");
+
+            print("Total Frames: ");
+            print_dec(pmm_get_total_frames());
+            print("\n");
+
+            print("Used Frames: ");
+            print_dec(pmm_get_used_frames());
+            print("\n");
+
+            break;
+        }
+
+        case SYS_ALLOC:
+            frame->eax = pmm_alloc_frame();
+            break;
+
+        case SYS_FREE:
+            pmm_free_frame(frame->ebx);
+            break;
+
+        default:
+            break;
+    }
+}
+
 /* ============================= */
 /* INTERRUPT DISPATCHER          */
 /* ============================= */
@@ -126,24 +188,12 @@ void interrupt_dispatch(interrupt_frame_t* frame)
     }
 
 
-    if (int_no == 128) {
+   if (int_no == 128) {
+      handle_syscall(frame);
+      return;
+   }
 
-       switch (frame->eax) {
 
-          case 1: // print
-             print((char*)frame->ebx);
-             break;
-
-          case 2: // getchar
-             frame->eax = keyboard_getchar();
-             break;
-
-          default:
-             break;
-       }
-
-       return;
-    }
 
     /* -------- HARDWARE IRQs -------- */
     if (int_no >= 32 && int_no <= 47) {

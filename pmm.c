@@ -43,6 +43,10 @@ static int test_frame(uint32_t frame)
 
 void pmm_init(void)
 {
+    total_memory = 0;
+    total_frames = 0;
+    used_frames  = 0;
+
     if (!(g_multiboot_info->flags & (1 << 6))) {
         kernel_panic("No memory map from bootloader");
     }
@@ -50,7 +54,7 @@ void pmm_init(void)
     multiboot_memory_map_t* mmap =
         (multiboot_memory_map_t*)g_multiboot_info->mmap_addr;
 
-    /* Calculate total memory */
+    /* ---- Calculate total memory ---- */
     while ((uint32_t)mmap <
            g_multiboot_info->mmap_addr + g_multiboot_info->mmap_length)
     {
@@ -69,24 +73,35 @@ void pmm_init(void)
 
     total_frames = total_memory / FRAME_SIZE;
 
-    /* Place bitmap right after kernel */
-    bitmap = (uint32_t*)&end;
+    /* ---- Place bitmap after kernel (aligned) ---- */
 
-    uint32_t bitmap_size = INDEX_FROM_BIT(total_frames) + 1;
+    /* ---- Correct bitmap sizing ---- */
+    uint32_t bitmap_uint32 = (total_frames + 31) / 32;
+    uint32_t bitmap_bytes  = bitmap_uint32 * sizeof(uint32_t);
 
-    for (uint32_t i = 0; i < bitmap_size; i++)
-        bitmap[i] = 0xFFFFFFFF;  // mark all used initially
+    /* Place bitmap right after kernel end */
+    bitmap = (uint32_t*)(((uint32_t)&end + 0xFFF) & 0xFFFFF000);
+
+    /* Calculate how many frames bitmap occupies */
+    uint32_t bitmap_frames =
+       (bitmap_bytes + FRAME_SIZE - 1) / FRAME_SIZE;
+
+
+
+    /* ---- Mark ALL frames used initially ---- */
+    for (uint32_t i = 0; i < bitmap_uint32; i++)
+        bitmap[i] = 0xFFFFFFFF;
 
     used_frames = total_frames;
 
-    /* Free usable regions */
+    /* ---- Free usable regions ---- */
     mmap = (multiboot_memory_map_t*)g_multiboot_info->mmap_addr;
 
     while ((uint32_t)mmap <
            g_multiboot_info->mmap_addr + g_multiboot_info->mmap_length)
     {
-        if (mmap->type == 1) {
-
+        if (mmap->type == 1)
+        {
             uint32_t start = (uint32_t)mmap->addr;
             uint32_t end_addr = (uint32_t)(mmap->addr + mmap->len);
 
@@ -96,7 +111,7 @@ void pmm_init(void)
             {
                 uint32_t frame = addr / FRAME_SIZE;
 
-                if (frame < total_frames) {
+                if (frame < total_frames && test_frame(frame)) {
                     clear_frame(frame);
                     used_frames--;
                 }
@@ -107,11 +122,17 @@ void pmm_init(void)
                ((uint32_t)mmap + mmap->size + sizeof(uint32_t));
     }
 
-    /* Reserve first 1MB */
+    /* ---- Reserve first 1MB ---- */
     for (uint32_t addr = 0; addr < 0x100000; addr += FRAME_SIZE)
-        set_frame(addr / FRAME_SIZE);
+    {
+        uint32_t frame = addr / FRAME_SIZE;
+        if (!test_frame(frame)) {
+            set_frame(frame);
+            used_frames++;
+        }
+    }
 
-    /* Reserve kernel */
+    /* ---- Reserve kernel ---- */
     uint32_t kernel_start = 0x100000;
     uint32_t kernel_end = (uint32_t)&end;
 
@@ -119,7 +140,26 @@ void pmm_init(void)
          addr < kernel_end;
          addr += FRAME_SIZE)
     {
-        set_frame(addr / FRAME_SIZE);
+        uint32_t frame = addr / FRAME_SIZE;
+        if (!test_frame(frame)) {
+            set_frame(frame);
+            used_frames++;
+        }
+    }
+
+    /* ---- Reserve bitmap itself ---- */
+    uint32_t bitmap_start = (uint32_t)bitmap;
+    uint32_t bitmap_end = bitmap_start + (bitmap_frames * FRAME_SIZE);
+
+    for (uint32_t addr = bitmap_start;
+         addr < bitmap_end;
+         addr += FRAME_SIZE)
+    {
+        uint32_t frame = addr / FRAME_SIZE;
+        if (!test_frame(frame)) {
+            set_frame(frame);
+            used_frames++;
+        }
     }
 }
 
@@ -127,17 +167,22 @@ void pmm_init(void)
 
 uint32_t pmm_alloc_frame(void)
 {
-    for (uint32_t i = 0; i < total_frames; i++) {
-        if (!test_frame(i)) {
+    if (used_frames >= total_frames)
+        return 0; // Out of memory
+
+    for (uint32_t i = 0; i < total_frames; i++)
+    {
+        if (!test_frame(i))
+        {
             set_frame(i);
             used_frames++;
+
             return i * FRAME_SIZE;
         }
     }
 
-    return 0; // out of memory
+    return 0; // No free frame found
 }
-
 
 
 void pmm_free_frame(uint32_t addr)

@@ -48,7 +48,15 @@ void scroll() {
 }
 
 /* -------------------- CHARACTER OUTPUT -------------------- */
+
 void put_char(char c) {
+
+    /* HANDLE BACKSPACE */
+    if (c == '\b') {
+        vga_backspace();
+        return;
+    }
+
     if (c == '\n') {
         cursor_col = 0;
         cursor_row++;
@@ -59,6 +67,9 @@ void put_char(char c) {
         update_cursor();
         return;
     }
+
+
+
 
     vga_buffer[cursor_row * VGA_WIDTH + cursor_col] = (color << 8) | c;
 

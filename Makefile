@@ -13,7 +13,7 @@ ASFLAGS = -f elf32
 LDFLAGS = -m elf_i386 -T linker.ld
 
 # Files
-C_SRC = kernel.c idt.c isr.c keyboard.c panic.c pit.c shell.c vga.c \
+C_SRC = kernel.c idt.c isr.c keyboard.c panic.c pit.c vga.c \
         pmm.c paging.c gdt.c tss.c user.c
 
 ASM_SRC = boot.S idt_load.S interrupts.S exceptions.S multiboot_header.S \

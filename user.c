@@ -1,52 +1,244 @@
 #include <stdint.h>
+#include "syscall.h"
 
-static inline int syscall(int num, int arg)
-{
-    int ret;
-    __asm__ volatile (
-        "int $0x80"
-        : "=a"(ret)
-        : "a"(num), "b"(arg)
-    );
-    return ret;
-}
+/* ===== FORWARD DECLARATIONS ===== */
+
+void sys_print(const char* str);
+
+/* ===== SYSCALL WRAPPERS ===== */
 
 void sys_print(const char* str)
 {
-    syscall(1, (int)str);
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_PRINT), "b"(str)
+    );
 }
 
 char sys_getchar()
 {
-    return syscall(2, 0);
+    char c;
+    asm volatile(
+        "int $0x80"
+        : "=a"(c)
+        : "a"(SYS_GETCHAR)
+    );
+    return c;
 }
+
+void sys_meminfo()
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_MEMINFO)
+    );
+}
+
+uint32_t sys_alloc()
+{
+    uint32_t addr;
+    asm volatile(
+        "int $0x80"
+        : "=a"(addr)
+        : "a"(SYS_ALLOC)
+    );
+    return addr;
+}
+
+void sys_free(uint32_t addr)
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_FREE), "b"(addr)
+    );
+}
+
+/* ===== SIMPLE STRING FUNCTIONS ===== */
+
+int strlen(const char* s)
+{
+    int i = 0;
+    while (s[i]) i++;
+    return i;
+}
+
+int strcmp(const char* a, const char* b)
+{
+    int i = 0;
+    while (a[i] && b[i]) {
+        if (a[i] != b[i])
+            return 1;
+        i++;
+    }
+
+    if (a[i] == 0 && b[i] == 0)
+        return 0;
+
+    return 1;
+}
+
+/* ===== HIVEBOX CONFIG ===== */
+
+#define INPUT_BUFFER 128
+
+static char buffer[INPUT_BUFFER];
+static int buf_index = 0;
+static uint32_t last_alloc = 0;
+
+/* ===== PRINT PROMPT ===== */
+
+void print_prompt()
+{
+    sys_print("bee$ ");
+}
+
+/* ===== CLEAR BUFFER ===== */
+
+void clear_buffer()
+{
+    for (int i = 0; i < INPUT_BUFFER; i++)
+        buffer[i] = 0;
+
+    buf_index = 0;
+}
+
+
+void to_hex_string(uint32_t n, char* out)
+{
+    const char* hex = "0123456789ABCDEF";
+
+    out[0] = '0';
+    out[1] = 'x';
+
+    for (int i = 0; i < 8; i++) {
+        out[9 - i] = hex[n & 0xF];
+        n >>= 4;
+    }
+
+    out[10] = 0;
+}
+
+
+/* ===== HIVEBOX MAIN ===== */
 
 void user_main()
 {
-    sys_print("bee$ ");
+    sys_print("Welcome to Hivebox\n");
+
+    clear_buffer();
+    print_prompt();
 
     while (1)
     {
         char c = sys_getchar();
-        if (!c)
-            continue;
 
-        // ENTER
+        /* ===== ENTER PRESSED ===== */
         if (c == '\n')
         {
-            sys_print("\nbee$ ");
-            continue;
+            sys_print("\n");
+
+            buffer[buf_index] = 0;
+
+            if (buf_index > 0)
+            {
+                if (strcmp(buffer, "dhelp") == 0)
+                {
+                    sys_print("Hivebox Commands:\n");
+                    sys_print("dhelp   - show commands\n");
+                    sys_print("dinfo   - system information\n");
+                    sys_print("dclear  - clear screen\n");
+                    sys_print("dmem    - memory info\n");
+                    sys_print("dalloc  - allocate frame\n");
+                    sys_print("dfree   - free last allocated frame\n");
+                }
+                else if (strcmp(buffer, "dinfo") == 0)
+                {
+                    sys_print("HiveOS 32-bit Kernel\n");
+                    sys_print("Hivebox v0.1\n");
+                    sys_print("Status: Stable\n");
+                }
+                else if (strcmp(buffer, "dclear") == 0)
+                {
+                    for (int i = 0; i < 30; i++)
+                        sys_print("\n");
+                }
+                else if (strcmp(buffer, "dmem") == 0)
+                {
+                    sys_meminfo();
+                }
+                else if (strcmp(buffer, "dalloc") == 0)
+                {
+                    last_alloc = sys_alloc();
+
+                    if (last_alloc == 0)
+                    {
+                        sys_print("Allocation failed - no free frames\n");
+                    }
+                    else
+                    {
+                        sys_print("Allocated frame at: ");
+                        char buf[11];
+                        to_hex_string(last_alloc, buf);
+                        sys_print(buf);
+                        sys_print("\n");
+                    }
+                }
+                else if (strcmp(buffer, "dfree") == 0)
+                {
+                    if (last_alloc != 0)
+                    {
+                        sys_free(last_alloc);
+                        sys_print("Freed frame: ");
+                        char buf[11];
+                        to_hex_string(last_alloc, buf);
+                        sys_print(buf);
+                        sys_print("\n");
+
+                        last_alloc = 0;
+
+                    }
+                    else
+                    {
+                        sys_print("No frame allocated\n");
+                    }
+                }
+                else
+                {
+                    sys_print("Unknown Hive command\n");
+                }
+            }
+
+            clear_buffer();
+            print_prompt();
         }
 
-        // BACKSPACE
-        if (c == 8)
+        /* ===== BACKSPACE ===== */
+        else if (c == 8 || c == 14)
         {
-            sys_print("\b \b");  
-            continue;
+            if (buf_index > 0)
+            {
+                buf_index--;
+                buffer[buf_index] = 0;
+                sys_print("\b \b");
+            }
         }
 
-        // NORMAL CHAR
-        char str[2] = {c, 0};
-        sys_print(str);
+        /* ===== PRINTABLE CHAR ===== */
+        else if (c >= 32 && c <= 126)
+        {
+            if (buf_index < INPUT_BUFFER - 1)
+            {
+                buffer[buf_index++] = c;
+
+                char temp[2];
+                temp[0] = c;
+                temp[1] = 0;
+
+                sys_print(temp);
+            }
+        }
     }
 }
