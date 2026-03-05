@@ -2,57 +2,40 @@
 #include "vga.h"
 
 /* ------------------------------------------------ */
-/* Internal helper                                  */
+/* Simple Bee Kernel Logger                         */
 /* ------------------------------------------------ */
 
-static void print_prefix(int level)
+#define KLOG_BUFFER_SIZE 4096
+
+static char klog_buffer[KLOG_BUFFER_SIZE];
+static int klog_index = 0;
+
+/* very small string copy */
+static void klog_store(const char* msg)
 {
-    switch (level)
+    while (*msg && klog_index < KLOG_BUFFER_SIZE - 1)
     {
-        case KLOG_INFO:
-            print("[INFO] ");
-            break;
-
-        case KLOG_MEM:
-            print("[MEM ] ");
-            break;
-
-        case KLOG_INT:
-            print("[INT ] ");
-            break;
-
-        case KLOG_USER:
-            print("[USER] ");
-            break;
-
-        case KLOG_ERR:
-            print("[ERR ] ");
-            break;
-
-        default:
-            print("[LOG ] ");
-            break;
+        klog_buffer[klog_index++] = *msg++;
     }
-}
 
-/* ------------------------------------------------ */
-/* Compatibility logger (old system)                */
-/* ------------------------------------------------ */
+    if (klog_index < KLOG_BUFFER_SIZE - 1)
+        klog_buffer[klog_index++] = '\n';
+
+    klog_buffer[klog_index] = 0;
+}
 
 void klog(const char* msg)
 {
     print("[BEE] ");
     print(msg);
     print("\n");
+
+    klog_store(msg);
 }
 
-/* ------------------------------------------------ */
-/* Level based logger                               */
-/* ------------------------------------------------ */
-
-void klog_level(int level, const char* msg)
+/* dump entire log buffer */
+void klog_dump()
 {
-    print_prefix(level);
-    print(msg);
-    print("\n");
+    print("=== Bee Kernel Log ===\n");
+    print(klog_buffer);
 }

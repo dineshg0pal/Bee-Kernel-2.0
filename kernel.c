@@ -10,6 +10,7 @@
 #include "paging.h"
 #include "gdt.h"
 #include "klog.h"
+#include "kmsg.h"
 
 extern void switch_to_user_mode();
 
@@ -39,6 +40,8 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     clear_screen();
     set_color(15, 0);
     print("Hello from Bee Kernel!\n");
+    
+    kmsg_init();
 
     klog("Kernel booting");
 

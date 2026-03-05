@@ -69,7 +69,14 @@ uint32_t sys_uptime()
     return ticks;
 }
 
-
+void sys_kmsg()
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_KMSG)
+    );
+}
 /* ===== SIMPLE STRING FUNCTIONS ===== */
 
 int strlen(const char* s)
@@ -194,6 +201,11 @@ void user_main()
                     sys_print("\n");
                 }
 
+
+                else if (strcmp(buffer, "dmsg") == 0)
+                {
+                    sys_kmsg();
+                }
 
                 else if (strcmp(buffer, "dmem") == 0)
                 {

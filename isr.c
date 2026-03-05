@@ -4,6 +4,7 @@
 #include "pit.h"
 #include "syscall.h"
 #include "pmm.h"
+#include "klog.h"
 #include <stdint.h>
 
 void print(const char* str);
@@ -171,6 +172,12 @@ static void handle_syscall(interrupt_frame_t* frame)
             break;
         }
 
+
+        case SYS_KMSG:
+        {
+            klog_dump();
+            break;
+        }
 
         default:
             break;

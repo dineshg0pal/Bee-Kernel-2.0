@@ -7,5 +7,6 @@
 #define SYS_ALLOC     3
 #define SYS_FREE      4
 #define SYS_UPTIME    5
+#define SYS_KMSG      6
 
 #endif
