@@ -56,6 +56,20 @@ void sys_free(uint32_t addr)
     );
 }
 
+uint32_t sys_uptime()
+{
+    uint32_t ticks;
+
+    asm volatile(
+        "int $0x80"
+        : "=a"(ticks)
+        : "a"(SYS_UPTIME)
+    );
+
+    return ticks;
+}
+
+
 /* ===== SIMPLE STRING FUNCTIONS ===== */
 
 int strlen(const char* s)
@@ -153,6 +167,7 @@ void user_main()
                     sys_print("dmem    - memory info\n");
                     sys_print("dalloc  - allocate frame\n");
                     sys_print("dfree   - free last allocated frame\n");
+                    sys_print("duptime - show system uptime\n");
                 }
                 else if (strcmp(buffer, "dinfo") == 0)
                 {
@@ -165,6 +180,21 @@ void user_main()
                     for (int i = 0; i < 30; i++)
                         sys_print("\n");
                 }
+
+                else if (strcmp(buffer, "duptime") == 0)
+                {
+                    uint32_t t = sys_uptime();
+
+                    sys_print("System uptime (ticks): ");
+
+                    char buf[11];
+                    to_hex_string(t, buf);
+
+                    sys_print(buf);
+                    sys_print("\n");
+                }
+
+
                 else if (strcmp(buffer, "dmem") == 0)
                 {
                     sys_meminfo();

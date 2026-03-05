@@ -114,6 +114,8 @@ static void page_fault_handler(interrupt_frame_t* frame)
 
 static void handle_syscall(interrupt_frame_t* frame)
 {
+    uint32_t pit_get_ticks();
+
     switch (frame->eax)
     {
         case SYS_PRINT:
@@ -162,6 +164,13 @@ static void handle_syscall(interrupt_frame_t* frame)
         case SYS_FREE:
             pmm_free_frame(frame->ebx);
             break;
+
+        case SYS_UPTIME:
+        {
+            frame->eax = pit_get_ticks();
+            break;
+        }
+
 
         default:
             break;

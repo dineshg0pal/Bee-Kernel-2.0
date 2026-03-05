@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include "pmm.h"
 #include "paging.h"
-
 #include "gdt.h"
+#include "klog.h"
 
 extern void switch_to_user_mode();
 
@@ -20,6 +20,7 @@ uint32_t kernel_stack_top = (uint32_t)&kernel_stack[4096];
 /* User stack (Ring 3) */
 uint8_t user_stack[4096];
 uint32_t user_stack_top = (uint32_t)&user_stack[4096];
+
 /* Global multiboot information pointer */
 multiboot_info_t* g_multiboot_info = 0;
 
@@ -39,34 +40,35 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     set_color(15, 0);
     print("Hello from Bee Kernel!\n");
 
+    klog("Kernel booting");
+
     /* ---------------- IDT + ISR FIRST ---------------- */
 
     idt_init();
     isr_install();
     idt_load_now();
 
+    klog("IDT initialized");
+
     /* ---------------- MEMORY SYSTEM ---------------- */
 
     pmm_init();
 
-    /* Enable paging AFTER IDT is ready */
-//    paging_init();
+    klog("Physical memory manager initialized");
 
-    /* ---------------- TEST PAGE FAULT ---------------- */
-    
-  /*  int* x = 0;
-    *x = 5; */
-    
+    /* Enable paging AFTER IDT is ready */
+    // paging_init();
 
     /* ---------------- HARDWARE INIT ---------------- */
 
     keyboard_init();
     pit_init(100);
 
+    klog("Hardware initialized");
+
     print("Interrupt system ready.\n");
 
     /* ---------------- ENABLE INTERRUPTS ---------------- */
-
 
     gdt_init();
 
@@ -74,11 +76,14 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     __asm__ volatile("sti");
 
+    klog("Interrupts enabled");
+
     print("Switching to user mode...\n");
+
+    klog("Switching to user mode");
 
     switch_to_user_mode();
 
-
     while (1)
-       __asm__ volatile("hlt");
+        __asm__ volatile("hlt");
 }
