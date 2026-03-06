@@ -11,6 +11,7 @@
 #include "gdt.h"
 #include "klog.h"
 #include "kmsg.h"
+#include "task.h"
 
 extern void switch_to_user_mode();
 
@@ -56,6 +57,15 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     /* ---------------- MEMORY SYSTEM ---------------- */
 
     pmm_init();
+
+    task_init();
+
+    task_t* t1 = task_create();
+    task_add(t1);
+
+    task_t* t2 = task_create();
+    task_add(t2);
+
 
     klog("Physical memory manager initialized");
 
