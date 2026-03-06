@@ -17,7 +17,7 @@ C_SRC = kernel.c idt.c isr.c keyboard.c panic.c pit.c vga.c \
         pmm.c paging.c gdt.c tss.c user.c klog.c kmsg.c task.c scheduler.c
 
 ASM_SRC = boot.S idt_load.S interrupts.S exceptions.S multiboot_header.S \
-          paging_asm.S gdt_flush.S user_mode.S syscall.S
+          paging_asm.S gdt_flush.S user_mode.S syscall_stub.S switch_task.S
 
 OBJ = $(C_SRC:.c=.o) $(ASM_SRC:.S=.o)
 
@@ -44,6 +44,11 @@ all: $(ISO)
 
 %.o: %.S
 	$(AS) $(ASFLAGS) $< -o $@
+
+
+%.o: %.asm
+	$(AS) $(ASFLAGS) $< -o $@
+
 
 # ==============================
 # Link Kernel

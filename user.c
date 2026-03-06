@@ -77,6 +77,15 @@ void sys_kmsg()
         : "a"(SYS_KMSG)
     );
 }
+
+void sys_tasks()
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_TASKS)
+    );
+}
 /* ===== SIMPLE STRING FUNCTIONS ===== */
 
 int strlen(const char* s)
@@ -206,6 +215,14 @@ void user_main()
                 {
                     sys_kmsg();
                 }
+                
+
+                else if (strcmp(buffer, "dps") == 0)
+                {
+                    sys_tasks(); // optional log display
+                    // call kernel task list print via syscall
+                }
+
 
                 else if (strcmp(buffer, "dmem") == 0)
                 {

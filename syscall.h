@@ -8,5 +8,5 @@
 #define SYS_FREE      4
 #define SYS_UPTIME    5
 #define SYS_KMSG      6
-
+#define SYS_TASKS     7
 #endif

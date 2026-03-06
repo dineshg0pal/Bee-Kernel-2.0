@@ -39,6 +39,10 @@ void task_add(task_t* task);
 /* current task */
 task_t* task_get_current();
 
+task_t* task_get_head();
+
 void task_list_print();
+
+void task_yield();
 
 #endif

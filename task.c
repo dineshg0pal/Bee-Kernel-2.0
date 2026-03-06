@@ -37,19 +37,33 @@ void task_init()
 static task_t task_pool[MAX_TASKS];
 static uint32_t task_count = 0;
 
+#define TASK_STACK_SIZE 4096
+
+static uint8_t task_stacks[MAX_TASKS][TASK_STACK_SIZE];
+
 task_t* task_create()
 {
     if (task_count >= MAX_TASKS)
         return 0;
 
-    task_t* new_task = &task_pool[task_count++];
+    task_t* new_task = &task_pool[task_count];
 
     new_task->pid = next_pid++;
     new_task->state = TASK_READY;
     new_task->next = 0;
 
+    /* setup task stack */
+    uint32_t stack_top = (uint32_t)&task_stacks[task_count][TASK_STACK_SIZE];
+
+    new_task->esp = stack_top;
+    new_task->ebp = stack_top;
+    new_task->eip = 0;
+
+    task_count++;
+
     return new_task;
 }
+
 
 /* ---------------- Add Task ---------------- */
 
@@ -71,6 +85,12 @@ void task_add(task_t* task)
 task_t* task_get_current()
 {
     return current_task;
+}
+
+
+task_t* task_get_head()
+{
+    return task_list;
 }
 
 
@@ -102,4 +122,19 @@ void task_list_print()
 
         t = t->next;
     }
+}
+
+#include "scheduler.h"
+
+void task_yield()
+{
+    task_t* next = scheduler_next();
+
+    if (!next)
+        return;
+
+    if (next == task_get_current())
+        return;
+
+    /* future: context switch will happen here */
 }

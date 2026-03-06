@@ -26,8 +26,6 @@ void pit_callback(void)
 {
     ticks++;
 
-    /* trigger scheduler */
-    scheduler_next();
 }
 
 /* ---------------- INIT ---------------- */

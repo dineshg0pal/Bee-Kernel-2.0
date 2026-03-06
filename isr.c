@@ -5,6 +5,7 @@
 #include "syscall.h"
 #include "pmm.h"
 #include "klog.h"
+#include "task.h"
 #include <stdint.h>
 
 void print(const char* str);
@@ -178,6 +179,14 @@ static void handle_syscall(interrupt_frame_t* frame)
             klog_dump();
             break;
         }
+
+        case SYS_TASKS:
+        {
+            task_list_print();
+            break;
+        }
+
+
 
         default:
             break;
