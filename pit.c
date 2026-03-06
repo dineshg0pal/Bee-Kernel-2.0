@@ -1,4 +1,6 @@
 #include "pit.h"
+#include "task.h"
+#include "scheduler.h"
 #include <stdint.h>
 
 #define PIT_CHANNEL0 0x40
@@ -23,7 +25,9 @@ static inline void outb(uint16_t port, uint8_t val)
 void pit_callback(void)
 {
     ticks++;
-   
+
+    /* trigger scheduler */
+    scheduler_next();
 }
 
 /* ---------------- INIT ---------------- */

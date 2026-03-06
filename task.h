@@ -27,11 +27,18 @@ typedef struct task
 
 /* ---------------- API ---------------- */
 
+/* task system */
 void task_init();
+
+/* task creation */
 task_t* task_create();
 
 /* task list */
 void task_add(task_t* task);
+
+/* current task */
 task_t* task_get_current();
+
+void task_list_print();
 
 #endif

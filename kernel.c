@@ -12,6 +12,7 @@
 #include "klog.h"
 #include "kmsg.h"
 #include "task.h"
+#include "scheduler.h"
 
 extern void switch_to_user_mode();
 
@@ -41,9 +42,8 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     clear_screen();
     set_color(15, 0);
     print("Hello from Bee Kernel!\n");
-    
-    kmsg_init();
 
+    kmsg_init();
     klog("Kernel booting");
 
     /* ---------------- IDT + ISR FIRST ---------------- */
@@ -57,20 +57,28 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     /* ---------------- MEMORY SYSTEM ---------------- */
 
     pmm_init();
+    klog("Physical memory manager initialized");
+
+    /* ---------------- TASK SYSTEM ---------------- */
 
     task_init();
 
+    /* Kernel bootstrap task */
+    task_t* kernel_task = task_create();
+    task_add(kernel_task);
+
+    /* Example worker tasks */
     task_t* t1 = task_create();
     task_add(t1);
 
     task_t* t2 = task_create();
     task_add(t2);
 
+    task_list_print();
 
-    klog("Physical memory manager initialized");
+    scheduler_init();
 
-    /* Enable paging AFTER IDT is ready */
-    // paging_init();
+    klog("Task system initialized");
 
     /* ---------------- HARDWARE INIT ---------------- */
 
@@ -92,7 +100,6 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
     klog("Interrupts enabled");
 
     print("Switching to user mode...\n");
-
     klog("Switching to user mode");
 
     switch_to_user_mode();
