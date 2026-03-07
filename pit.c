@@ -21,13 +21,20 @@ static inline void outb(uint16_t port, uint8_t val)
 }
 
 /* ---------------- IRQ HANDLER ---------------- */
+static uint32_t tick = 0;
+static int need_schedule = 0;
 
 void pit_callback(void)
 {
     ticks++;
+    tick++;
 
+    if (tick >= 100)
+    {
+        tick = 0;
+        need_schedule = 1;
+    }
 }
-
 /* ---------------- INIT ---------------- */
 
 void pit_init(uint32_t frequency)

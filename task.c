@@ -14,6 +14,7 @@ static task_t* task_list = 0;
 /* current running task */
 static task_t* current_task = 0;
 
+extern void switch_task(uint32_t* old_esp, uint32_t new_esp);
 
 /* ---------------- Init ---------------- */
 
@@ -41,7 +42,7 @@ static uint32_t task_count = 0;
 
 static uint8_t task_stacks[MAX_TASKS][TASK_STACK_SIZE];
 
-task_t* task_create()
+task_t* task_create(void(*entry)())
 {
     if (task_count >= MAX_TASKS)
         return 0;
@@ -55,9 +56,12 @@ task_t* task_create()
     /* setup task stack */
     uint32_t stack_top = (uint32_t)&task_stacks[task_count][TASK_STACK_SIZE];
 
+    stack_top -= 4;
+    *(uint32_t*)stack_top = (uint32_t)entry;
+
     new_task->esp = stack_top;
     new_task->ebp = stack_top;
-    new_task->eip = 0;
+    new_task->eip = (uint32_t)entry;
 
     task_count++;
 
@@ -111,13 +115,15 @@ void task_list_print()
 {
     task_t* t = task_list;
 
-    print("PID   STATE\n");
+    print("PID   STATE   EIP\n");
 
     while (t)
     {
         print_dec(t->pid);
         print("    ");
         print(task_state_string(t->state));
+        print("    ");
+        print_hex(t->eip);
         print("\n");
 
         t = t->next;
@@ -128,13 +134,16 @@ void task_list_print()
 
 void task_yield()
 {
+    task_t* prev = task_get_current();
     task_t* next = scheduler_next();
 
-    if (!next)
+    if (!next || next == prev)
         return;
 
-    if (next == task_get_current())
-        return;
+    prev->state = TASK_READY;
+    next->state = TASK_RUNNING;
 
-    /* future: context switch will happen here */
+    current_task = next;
+
+    switch_task(&prev->esp, next->esp);
 }

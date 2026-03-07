@@ -27,6 +27,23 @@ uint32_t user_stack_top = (uint32_t)&user_stack[4096];
 /* Global multiboot information pointer */
 multiboot_info_t* g_multiboot_info = 0;
 
+
+void worker1()
+{
+    while (1)
+    {
+        task_yield();
+    }
+}
+
+void worker2()
+{
+    while (1)
+    {
+        task_yield();
+    }
+}
+
 void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 {
     /* ---------------- BOOT VALIDATION ---------------- */
@@ -63,15 +80,12 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     task_init();
 
-    /* Kernel bootstrap task */
-    task_t* kernel_task = task_create();
-    task_add(kernel_task);
 
     /* Example worker tasks */
-    task_t* t1 = task_create();
+    task_t* t1 = task_create(worker1);
     task_add(t1);
 
-    task_t* t2 = task_create();
+    task_t* t2 = task_create(worker2);
     task_add(t2);
 
     task_list_print();

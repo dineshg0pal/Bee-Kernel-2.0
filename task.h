@@ -31,8 +31,7 @@ typedef struct task
 void task_init();
 
 /* task creation */
-task_t* task_create();
-
+task_t* task_create(void (*entry)());
 /* task list */
 void task_add(task_t* task);
 
