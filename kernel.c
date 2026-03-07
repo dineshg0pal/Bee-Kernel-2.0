@@ -28,6 +28,19 @@ uint32_t user_stack_top = (uint32_t)&user_stack[4096];
 multiboot_info_t* g_multiboot_info = 0;
 
 
+/* ---------------- Idle Task ---------------- */
+
+void idle_task()
+{
+    while (1)
+    {
+        __asm__ volatile("hlt");
+    }
+}
+
+
+/* ---------------- Example Workers ---------------- */
+
 void worker1()
 {
     while (1)
@@ -43,6 +56,7 @@ void worker2()
         task_yield();
     }
 }
+
 
 void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 {
@@ -80,6 +94,9 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     task_init();
 
+    /* Idle task */
+    task_t* idle = task_create(idle_task);
+    task_add(idle);
 
     /* Example worker tasks */
     task_t* t1 = task_create(worker1);
