@@ -145,13 +145,12 @@ This project explores:
 
 # 📜 License
 
-This project is open source and available under the MPL License.
+This project is open source and available under the MPL-2.0 License.
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
-Dinesh
-Operating system enthusiast building Bee Kernel for learning and experimentation.
+Dinesh — Creator of Bee Kernel, an educational x86 operating system kernel project.
 
 ---
