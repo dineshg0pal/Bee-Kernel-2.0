@@ -26,6 +26,14 @@ void sys_spawn()
     );
 }
 
+void sys_kill(uint32_t pid)
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_KILL), "b"(pid)
+    );
+}
 
 char sys_getchar()
 {
@@ -121,6 +129,20 @@ int strcmp(const char* a, const char* b)
     return 1;
 }
 
+int strncmp(const char* a, const char* b, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (a[i] != b[i])
+            return 1;
+
+        if (a[i] == 0 || b[i] == 0)
+            return 0;
+    }
+
+    return 0;
+}
+
 /* ===== HIVEBOX CONFIG ===== */
 
 #define INPUT_BUFFER 128
@@ -188,14 +210,15 @@ void user_main()
                 if (strcmp(buffer, "dhelp") == 0)
                 {
                     sys_print("Hivebox Commands:\n");
-                    sys_print("dhelp   - show commands\n");
-                    sys_print("dinfo   - system information\n");
-                    sys_print("dclear  - clear screen\n");
-                    sys_print("dmem    - memory info\n");
-                    sys_print("dalloc  - allocate frame\n");
-                    sys_print("dfree   - free last allocated frame\n");
-                    sys_print("duptime - show system uptime\n");
-                    sys_print("dspawn  - spawn demo task\n");
+                    sys_print("dhelp       - show commands\n");
+                    sys_print("dinfo       - system information\n");
+                    sys_print("dclear      - clear screen\n");
+                    sys_print("dmem        - memory info\n");
+                    sys_print("dalloc      - allocate frame\n");
+                    sys_print("dfree       - free last allocated frame\n");
+                    sys_print("duptime     - show system uptime\n");
+                    sys_print("dspawn      - spawn demo task\n");
+                    sys_print("dkill <pid> - terminate task\n");
                 }
                 else if (strcmp(buffer, "dinfo") == 0)
                 {
@@ -233,6 +256,16 @@ void user_main()
                 {
                     sys_print("Spawning demo task...\n");
                     sys_spawn();
+                }
+
+
+                else if (strncmp(buffer, "dkill ", 6) == 0)
+                {
+                    uint32_t pid = buffer[6] - '0';
+
+                    sys_kill(pid);
+
+                    sys_print("Kill request sent\n");
                 }
                 
 

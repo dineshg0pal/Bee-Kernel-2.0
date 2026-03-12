@@ -44,4 +44,6 @@ void task_list_print();
 
 void task_yield();
 
+void task_kill(uint32_t pid);
+
 #endif

@@ -10,5 +10,6 @@
 #define SYS_KMSG      6
 #define SYS_TASKS     7
 #define SYS_SPAWN     9
+#define SYS_KILL      10
 
 #endif

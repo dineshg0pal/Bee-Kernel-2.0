@@ -186,7 +186,14 @@ static void handle_syscall(interrupt_frame_t* frame)
             break;
         }
 
+        case SYS_KILL:
+        {
+            uint32_t pid = frame->ebx;
 
+            task_kill(pid);
+
+            break;
+        }
 
         case SYS_SPAWN:
         {

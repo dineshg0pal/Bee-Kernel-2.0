@@ -159,3 +159,33 @@ void demo_task()
         pit_sleep(500);
     }
 }
+
+
+
+void task_kill(uint32_t pid)
+{
+    task_t* prev = 0;
+    task_t* t = task_get_head();
+
+    while (t)
+    {
+        if (t->pid == pid)
+        {
+            if (prev)
+                prev->next = t->next;
+
+            print("Task killed: ");
+            print_dec(pid);
+            print("\n");
+
+            t->state = TASK_BLOCKED;
+
+            return;
+        }
+
+        prev = t;
+        t = t->next;
+    }
+
+    print("PID not found\n");
+}
