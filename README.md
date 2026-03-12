@@ -58,7 +58,7 @@ sudo apt install build-essential gcc-multilib nasm qemu-system-x86 grub-pc-bin x
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/bee-kernel.git
+git clone https://github.com/dineshg0pal/Bee-Kernel-2.0.git
 cd bee-kernel
 ```
 
