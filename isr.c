@@ -188,6 +188,26 @@ static void handle_syscall(interrupt_frame_t* frame)
 
 
 
+        case SYS_SPAWN:
+        {
+           extern void demo_task();
+
+           task_t* t = task_create(demo_task);
+
+           if (t)
+           {
+              task_add(t);
+              print("Task spawned\n");
+           }
+           else
+           {
+              print("Task creation failed\n");
+           }
+
+           break;
+        }
+
+
         default:
             break;
     }

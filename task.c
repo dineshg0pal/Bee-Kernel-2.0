@@ -147,3 +147,15 @@ void task_yield()
 
     switch_task(&prev->esp, next->esp);
 }
+
+
+#include "pit.h"
+
+void demo_task()
+{
+    while (1)
+    {
+        print("Bee task running\n");
+        pit_sleep(500);
+    }
+}

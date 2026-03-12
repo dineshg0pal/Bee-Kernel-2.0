@@ -16,6 +16,17 @@ void sys_print(const char* str)
     );
 }
 
+
+void sys_spawn()
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_SPAWN)
+    );
+}
+
+
 char sys_getchar()
 {
     char c;
@@ -184,6 +195,7 @@ void user_main()
                     sys_print("dalloc  - allocate frame\n");
                     sys_print("dfree   - free last allocated frame\n");
                     sys_print("duptime - show system uptime\n");
+                    sys_print("dspawn  - spawn demo task\n");
                 }
                 else if (strcmp(buffer, "dinfo") == 0)
                 {
@@ -214,6 +226,13 @@ void user_main()
                 else if (strcmp(buffer, "dmsg") == 0)
                 {
                     sys_kmsg();
+                }
+
+
+                else if (strcmp(buffer, "dspawn") == 0)
+                {
+                    sys_print("Spawning demo task...\n");
+                    sys_spawn();
                 }
                 
 

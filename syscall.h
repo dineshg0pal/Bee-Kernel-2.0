@@ -9,4 +9,6 @@
 #define SYS_UPTIME    5
 #define SYS_KMSG      6
 #define SYS_TASKS     7
+#define SYS_SPAWN     9
+
 #endif
