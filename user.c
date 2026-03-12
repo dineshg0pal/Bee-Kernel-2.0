@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "syscall.h"
 
-/* ===== FORWARD DECLARATIONS ===== */
+/* ====== FORWARD DECLARATIONS ===== */
 
 void sys_print(const char* str);
 
