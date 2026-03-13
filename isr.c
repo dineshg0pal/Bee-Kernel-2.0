@@ -6,6 +6,7 @@
 #include "pmm.h"
 #include "klog.h"
 #include "task.h"
+#include "vga.h"
 #include <stdint.h>
 
 void print(const char* str);
@@ -173,6 +174,36 @@ static void handle_syscall(interrupt_frame_t* frame)
             break;
         }
 
+        case SYS_STATE:
+        {
+            task_t* t = task_get_current();
+
+            print("\nScheduler State\n");
+            print("---------------\n");
+
+            print("Current PID : ");
+            print_dec(t->pid);
+            print("\n");
+
+            print("State       : ");
+
+            if (t->state == TASK_RUNNING)
+               print("RUNNING\n");
+            else if (t->state == TASK_READY)
+               print("READY\n");
+            else if (t->state == TASK_BLOCKED)
+               print("BLOCKED\n");
+
+            print("ESP         : ");
+            print_hex(t->esp);
+            print("\n");
+
+            print("EIP         : ");
+            print_hex(t->eip);
+            print("\n");
+
+            break;
+        }
 
         case SYS_KMSG:
         {

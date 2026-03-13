@@ -11,5 +11,6 @@
 #define SYS_TASKS     7
 #define SYS_SPAWN     9
 #define SYS_KILL      10
+#define SYS_STATE     11
 
 #endif

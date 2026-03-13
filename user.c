@@ -35,6 +35,16 @@ void sys_kill(uint32_t pid)
     );
 }
 
+void sys_state()
+{
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_STATE)
+    );
+}
+
+
 char sys_getchar()
 {
     char c;
@@ -219,6 +229,7 @@ void user_main()
                     sys_print("duptime     - show system uptime\n");
                     sys_print("dspawn      - spawn demo task\n");
                     sys_print("dkill <pid> - terminate task\n");
+                    sys_print("dstate      - show scheduler\n");
                 }
                 else if (strcmp(buffer, "dinfo") == 0)
                 {
@@ -267,7 +278,13 @@ void user_main()
 
                     sys_print("Kill request sent\n");
                 }
-                
+ 
+
+                else if (strcmp(buffer, "dstate") == 0)
+                {
+                     sys_state();
+                }
+               
 
                 else if (strcmp(buffer, "dps") == 0)
                 {
