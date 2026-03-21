@@ -1,4 +1,4 @@
-# 🐝 Bee Kernel (v0.1)
+# 🐝 Bee Kernel 
 
 Bee Kernel is a small educational **32-bit x86 operating system kernel** written in C and Assembly.
 The goal of the project is to explore how operating systems work internally by building core kernel components from scratch.
