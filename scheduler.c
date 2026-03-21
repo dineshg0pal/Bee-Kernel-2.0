@@ -5,13 +5,11 @@
 /* external assembly switcher */
 extern void switch_task(uint32_t* old_esp, uint32_t new_esp);
 
-static task_t* current = 0;
 
 /* ---------------- INIT ---------------- */
 
 void scheduler_init()
 {
-    current = task_get_current();
     klog("Scheduler initialized");
 }
 
@@ -19,6 +17,8 @@ void scheduler_init()
 
 task_t* scheduler_next()
 {
+    task_t* current = task_get_current();
+
     if (!current)
         return 0;
 
