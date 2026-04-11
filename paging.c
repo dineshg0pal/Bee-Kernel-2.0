@@ -32,6 +32,7 @@ void paging_init(void)
         first_page_table[i] =
             (i * PAGE_SIZE) | PAGE_PRESENT | PAGE_RW;
     }
+    page_directory[1] = ((uint32_t)first_page_table) | PAGE_PRESENT | PAGE_RW;
 
     /* Protect null page */
     first_page_table[0] = 0;
