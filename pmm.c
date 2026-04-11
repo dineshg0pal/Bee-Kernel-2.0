@@ -16,6 +16,8 @@ static uint32_t total_memory = 0;
 static uint32_t total_frames = 0;
 static uint32_t used_frames = 0;
 
+static uint32_t last_alloc = 0;
+
 /* Bitmap stored right after kernel */
 static uint32_t* bitmap = 0;
 
@@ -170,12 +172,14 @@ uint32_t pmm_alloc_frame(void)
     if (used_frames >= total_frames)
         return (uint32_t)-1; // Out of memory
 
-    for (uint32_t i = 0; i < total_frames; i++)
+    for (uint32_t i = last_alloc; i < total_frames; i++)
     {
         if (!test_frame(i))
         {
             set_frame(i);
             used_frames++;
+
+            last_alloc = i + 1;
 
             return i * FRAME_SIZE;
         }
