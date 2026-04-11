@@ -134,7 +134,7 @@ void pmm_init(void)
 
     /* ---- Reserve kernel ---- */
     uint32_t kernel_start = 0x100000;
-    uint32_t kernel_end = (uint32_t)&end;
+    uint32_t kernel_end = (uint32_t)bitmap + (bitmap_frames * FRAME_SIZE);
 
     for (uint32_t addr = kernel_start;
          addr < kernel_end;
