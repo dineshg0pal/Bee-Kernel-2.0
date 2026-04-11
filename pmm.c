@@ -168,7 +168,7 @@ void pmm_init(void)
 uint32_t pmm_alloc_frame(void)
 {
     if (used_frames >= total_frames)
-        return 0; // Out of memory
+        return (uint32_t)-1; // Out of memory
 
     for (uint32_t i = 0; i < total_frames; i++)
     {
