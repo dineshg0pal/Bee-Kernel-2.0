@@ -13,6 +13,7 @@
 #include "kmsg.h"
 #include "task.h"
 #include "scheduler.h"
+#include "fs.h"
 
 extern void switch_to_user_mode();
 
@@ -89,6 +90,9 @@ void kernel_main(uint32_t magic, uint32_t multiboot_addr)
 
     pmm_init();
     klog("Physical memory manager initialized");
+
+    /* ---------------FILE SYSTEM---------------------*/
+    fs_init();
 
     /* ---------------- TASK SYSTEM ---------------- */
 
