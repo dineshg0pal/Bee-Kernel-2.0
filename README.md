@@ -59,7 +59,7 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/dineshg0pal/Bee-Kernel-2.0.git
-cd bee-kernel
+cd Bee-Kernel-2.0
 ```
 
 Build the kernel:
